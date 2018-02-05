@@ -13,8 +13,73 @@ char HANG_STATES[7][10 * 9] =
 	"/*****\\   /*****\\   /*****\\   /*****\\   /*****\\   /*****\\   /*****\\   /*****\\   /*****\\   "
 };
 
-void print_ui() {
+int str_contains(char *str, char target) {
+  return (strchr(str, target) == NULL ? 0 : 1);
+}
 
+void print_ui(char *word, char *guessed, int hangman_state, int clear) {
+  // if clear flag is set to 1 (true), clear the screen
+  if (clear) {
+    printf("\033[2J\003[1;1H");
+    fflush(stdout);
+  }
+
+  // print the current hangman state
+  for (int i = 0; i < 7; i++) {
+    printf("%.10s\n", &HANG_STATES[i][hangman_state * 10]);
+  }
+  printf("\n");
+
+  // print guessed letters
+  for (int i = 0; i < strlen(word); i++) {
+    if (i > 0) {
+      printf(" ");
+    }
+    if (str_contains(guessed, word[i])) {
+      printf("%c", word[i]);
+    } else {
+      printf("_");
+    }
+  }
+
+  printf("\n\nWrong guesses:\n");
+
+  // find and print missed letters
+
+  for (int i = 0; i < strlen(guessed); i++) {
+    if (!str_contains(word, guessed[i])) {
+      if (i > 0) {
+        printf(" ");
+      }
+      printf("%c", guessed[i]);
+    }
+  }
+  printf("\n\n");
+}
+
+// reads user input from standard input with the given text prompt
+char *read_input(char *prompt) {
+  size_t s = 1;
+  size_t r = 0;
+  int c;
+
+  char *in = malloc(sizeof(char) * s);
+
+  printf("%s", prompt);
+
+  // read in the user's input
+  while ((c = fgetc(stdin)) != EOF) {
+    if ((char)c == '\n') break;
+    if (r == s) {
+      s *= 2;
+      in = realloc(in, s * sizeof(char));
+    }
+    in[r++] = (char)c;
+  }
+  in = realloc(in, s * sizeof(char));
+  in[r] = '\0';
+
+  return in;
 }
 
 int main(int argc, char *argv[]) {
@@ -126,9 +191,12 @@ int main(int argc, char *argv[]) {
       free(guess);
       break;
     }
+
+    printf("\n");
   }
 
 
+  free(guess);
   free(guessed);
   printf("GG WP!\n");
   
